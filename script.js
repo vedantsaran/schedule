@@ -43,7 +43,7 @@ document.addEventListener("DOMContentLoaded", function() {
         addTask(shuffledTasks[0], startTime);
 
         // Add AP tasks in remaining available time slots
-        shuffledTasks.slice(1).forEach(task => {
+        shuffledTasks.slice(1, 3).forEach(task => {
             const availableStart = availableTime.find(time => time + task.duration <= endTime);
             if (availableStart !== undefined) {
                 addTask(task, availableStart);
@@ -83,6 +83,9 @@ document.addEventListener("DOMContentLoaded", function() {
         const schedule = generateSchedule();
         displaySchedule(schedule);
     }
+
+    // Attach generateAndDisplaySchedule to window to make it callable from HTML button
+    window.generateAndDisplaySchedule = generateAndDisplaySchedule;
 
     // Generate initial schedule on load
     generateAndDisplaySchedule();
