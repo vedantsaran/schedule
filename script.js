@@ -37,25 +37,31 @@ document.addEventListener("DOMContentLoaded", function() {
         fixedTasks.forEach(task => addTask(task, task.start));
 
         // Shuffle tasks
-        const shuffledTasks = tasks.filter(task => task.name !== "IOL").sort(() => 0.5 - Math.random());
+        const shuffledTasks = tasks.filter(task => task.name !== "IOL" && task.name !== "USACO").sort(() => 0.5 - Math.random());
 
-        // Add USACO first
-        addTask(shuffledTasks[0], startTime);
+        // Decide whether USACO or IOL goes first and the other goes last
+        const firstTask = Math.random() > 0.5 ? tasks.find(task => task.name === "USACO") : tasks.find(task => task.name === "IOL");
+        const lastTask = firstTask.name === "USACO" ? tasks.find(task => task.name === "IOL") : tasks.find(task => task.name === "USACO");
+
+        // Add the first task
+        if (firstTask.name === "IOL") {
+            // Split IOL if necessary
+            addTask({ name: "IOL (Part 1)", duration: 4 }, startTime);
+            addTask({ name: "IOL (Part 2)", duration: 1 }, 14);
+        } else {
+            addTask(firstTask, startTime);
+        }
 
         // Add AP tasks in remaining available time slots
-        shuffledTasks.slice(1, 3).forEach(task => {
+        shuffledTasks.slice(0, 2).forEach(task => {
             const availableStart = availableTime.find(time => time + task.duration <= endTime);
             if (availableStart !== undefined) {
                 addTask(task, availableStart);
             }
         });
 
-        // Add IOL last, ensuring it fits within the remaining time
-        const iolTask = tasks.find(task => task.name === "IOL");
-        const lastAvailableStart = availableTime.find(time => time + iolTask.duration <= endTime);
-        if (lastAvailableStart !== undefined) {
-            addTask(iolTask, lastAvailableStart);
-        }
+        // Add the last task
+        addTask(lastTask, endTime - lastTask.duration);
 
         return schedule;
     }
