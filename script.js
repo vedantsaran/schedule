@@ -37,7 +37,7 @@ document.addEventListener("DOMContentLoaded", function() {
         fixedTasks.forEach(task => addTask(task, task.start));
 
         // Shuffle tasks
-        const shuffledTasks = tasks.sort(() => 0.5 - Math.random());
+        const shuffledTasks = tasks.filter(task => task.name !== "IOL").sort(() => 0.5 - Math.random());
 
         // Add USACO first
         addTask(shuffledTasks[0], startTime);
@@ -50,8 +50,12 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         });
 
-        // Add IOL last
-        addTask(tasks.find(task => task.name === "IOL"), endTime - 5);
+        // Add IOL last, ensuring it fits within the remaining time
+        const iolTask = tasks.find(task => task.name === "IOL");
+        const lastAvailableStart = availableTime.find(time => time + iolTask.duration <= endTime);
+        if (lastAvailableStart !== undefined) {
+            addTask(iolTask, lastAvailableStart);
+        }
 
         return schedule;
     }
