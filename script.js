@@ -4,44 +4,54 @@ document.addEventListener("DOMContentLoaded", function() {
         { name: "IOL", duration: 5 },
         { name: "AP Stats", duration: 2 },
         { name: "AP Chem", duration: 2 },
-        { name: "APUSH", duration: 2 },
-        { name: "Gym", duration: 2 },
-        { name: "Lunch", duration: 1 }
+        { name: "APUSH", duration: 2 }
+    ];
+
+    const fixedTasks = [
+        { name: "Gym", duration: 2, start: 11 },
+        { name: "Lunch", duration: 1, start: 13 }
     ];
 
     const startTime = 7; // 7 AM
     const endTime = 22; // 10 PM
 
     function generateSchedule() {
-        let currentTime = startTime;
-        const schedule = [];
-        
+        let schedule = [];
+        let availableTime = [
+            ...Array.from({ length: 11 - startTime }, (_, i) => startTime + i),
+            ...Array.from({ length: endTime - 14 }, (_, i) => 14 + i)
+        ];
+
         // Helper function to add a task to the schedule
-        function addTask(task) {
-            schedule.push({
+        function addTask(task, startTime) {
+            const taskSlot = {
                 name: task.name,
-                start: currentTime,
-                end: currentTime + task.duration
-            });
-            currentTime += task.duration;
+                start: startTime,
+                end: startTime + task.duration
+            };
+            schedule.push(taskSlot);
+            availableTime = availableTime.filter(time => time < startTime || time >= taskSlot.end);
         }
-        
+
+        // Add fixed tasks (Gym and Lunch)
+        fixedTasks.forEach(task => addTask(task, task.start));
+
+        // Shuffle tasks
+        const shuffledTasks = tasks.sort(() => 0.5 - Math.random());
+
         // Add USACO first
-        addTask(tasks[0]);
+        addTask(shuffledTasks[0], startTime);
 
-        // Add Gym and Lunch
-        addTask(tasks[5]); // Gym
-        addTask(tasks[6]); // Lunch
+        // Add AP tasks in remaining available time slots
+        shuffledTasks.slice(1).forEach(task => {
+            const availableStart = availableTime.find(time => time + task.duration <= endTime);
+            if (availableStart !== undefined) {
+                addTask(task, availableStart);
+            }
+        });
 
-        // Add two of the AP tasks
-        addTask(tasks[2]); // AP Stats
-        addTask(tasks[3]); // AP Chem
-
-        // Add IOL
-        addTask(tasks[1]);
-
-        // Add APUSH
-        addTask(tasks[4]);
+        // Add IOL last
+        addTask(tasks.find(task => task.name === "IOL"), endTime - 5);
 
         return schedule;
     }
@@ -57,6 +67,7 @@ document.addEventListener("DOMContentLoaded", function() {
     function displaySchedule(schedule) {
         const scheduleContainer = document.getElementById("schedule");
         scheduleContainer.innerHTML = "";
+        schedule.sort((a, b) => a.start - b.start);
         schedule.forEach(task => {
             const taskElement = document.createElement("div");
             taskElement.className = "task";
@@ -68,6 +79,11 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    const schedule = generateSchedule();
-    displaySchedule(schedule);
+    function generateAndDisplaySchedule() {
+        const schedule = generateSchedule();
+        displaySchedule(schedule);
+    }
+
+    // Generate initial schedule on load
+    generateAndDisplaySchedule();
 });
